@@ -14,7 +14,6 @@ services:
       CERT_CHECK_INTERVAL: ${CERT_CHECK_INTERVAL:-60}
     networks:
       - service_network
-      - service_network
 
 networks:
   service_network:
