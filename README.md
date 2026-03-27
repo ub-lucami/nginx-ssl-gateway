@@ -32,6 +32,8 @@ This repository runs an Nginx reverse proxy with SSL termination in front of an 
             ├── 10-main.conf.template
             └── 20-tenant1.conf.template
 ```
+## Notes on ```nginx.conf```
+Must handle 'Access-Control-Allow-Origin', see example.
 
 ## Configuration
 
