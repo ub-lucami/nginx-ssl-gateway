@@ -1,5 +1,19 @@
 services:
   nginx:
+    build: .
+    container_name: nginx-ssl-gateway
+    restart: unless-stopped
+    ports:
+      - "${SSL_PORT}:443"
+    volumes:
+      - ${SSL_CERTS_PATH}:/etc/nginx/certs:ro
+    environment:
+      KONG_UPSTREAM: ${KONG_UPSTREAM:-kong:8000}
+      CERT_FILE: ${CERT_FILE:-/etc/nginx/certs/fullchain.pem}
+      KEY_FILE: ${KEY_FILE:-/etc/nginx/certs/privkey.pem}
+      CERT_CHECK_INTERVAL: ${CERT_CHECK_INTERVAL:-60}
+    networks:
+      - service_network
     image: nginx:1.27-alpine
     container_name: nginx-ssl-gateway
     restart: unless-stopped
