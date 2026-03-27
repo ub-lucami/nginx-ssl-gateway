@@ -3,7 +3,7 @@ set -eu
 
 mkdir -p /etc/nginx/conf.d
 
-SUBST_VARS='${KONG_UPSTREAM} ${CERT_FILE} ${KEY_FILE} ${DEFAULT_CERT} ${TENANT1_SERVER_NAME} ${TENANT1_UPSTREAM} ${TENANT1_CERT}'
+SUBST_VARS='${KONG_UPSTREAM} ${DEFAULT_CERT} ${TENANT1_SERVER_NAME} ${TENANT1_UPSTREAM} ${TENANT1_CERT}'
 for f in /etc/nginx/templates/conf.d/*.template; do
   out="/etc/nginx/conf.d/$(basename "$f" .template)"
   envsubst "$SUBST_VARS" < "$f" > "$out"
