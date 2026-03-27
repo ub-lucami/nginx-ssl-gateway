@@ -1,0 +1,34 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Certificates
+certs/
+*.pem
+*.key
+*.crt
+nginx/certs/
+
+# Docker overrides / local
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# Temporary / OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+node_modules/
+tmp/
+temp/
+*.tmp
