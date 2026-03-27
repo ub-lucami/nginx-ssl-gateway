@@ -14,30 +14,6 @@ services:
       CERT_CHECK_INTERVAL: ${CERT_CHECK_INTERVAL:-60}
     networks:
       - service_network
-    image: nginx:1.27-alpine
-    container_name: nginx-ssl-gateway
-    restart: unless-stopped
-    ports:
-      - "${SSL_PORT}:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/templates:/etc/nginx/templates:ro
-      - ./nginx/start.sh:/start.sh:ro
-      - ${SSL_CERTS_PATH}:/etc/nginx/certs:ro
-    environment:
-      KONG_UPSTREAM: ${KONG_UPSTREAM:-kong:8000}
-      CERT_FILE: ${CERT_FILE:-/etc/nginx/certs/fullchain.pem}
-      KEY_FILE: ${KEY_FILE:-/etc/nginx/certs/privkey.pem}
-      CERT_CHECK_INTERVAL: ${CERT_CHECK_INTERVAL:-60}
-
-      # Future multi-tenant settings, disabled for now
-      # DEFAULT_CERT: ${DEFAULT_CERT:-default}
-      # TENANT1_SERVER_NAME: ${TENANT1_SERVER_NAME}
-      # TENANT1_UPSTREAM: ${TENANT1_UPSTREAM}
-      # TENANT1_CERT: ${TENANT1_CERT}
-    command: >
-      /bin/sh -c "chmod +x /start.sh && /start.sh"
-    networks:
       - service_network
 
 networks:
