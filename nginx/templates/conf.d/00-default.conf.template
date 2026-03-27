@@ -3,7 +3,7 @@
 #     http2 on;
 #     server_name _;
 #
-#     ssl_certificate     /etc/nginx/certs/${DEFAULT_CERT}/chain.pem;
+#     ssl_certificate     /etc/nginx/certs/${DEFAULT_CERT}/fullchain.pem;
 #     ssl_certificate_key /etc/nginx/certs/${DEFAULT_CERT}/privkey.pem;
 #
 #     return 444;

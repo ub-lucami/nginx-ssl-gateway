@@ -3,7 +3,7 @@
 #     http2 on;
 #     server_name ${TENANT1_SERVER_NAME};
 #
-#     ssl_certificate     /etc/nginx/certs/${TENANT1_CERT}/chain.pem;
+#     ssl_certificate     /etc/nginx/certs/${TENANT1_CERT}/fullchain.pem;
 #     ssl_certificate_key /etc/nginx/certs/${TENANT1_CERT}/privkey.pem;
 #
 #     location / {
