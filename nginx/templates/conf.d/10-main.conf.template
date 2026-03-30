@@ -4,43 +4,50 @@ server {
 
     server_name *.lucami.org;
 
-    ssl_certificate     /etc/nginx/certs/${DEFAULT_CERT}/fullchain.pem;
-    ssl_certificate_key /etc/nginx/certs/${DEFAULT_CERT}/privkey.pem;
+    ssl_certificate     /etc/nginx/certs/docker-alpine.lucami.org/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/docker-alpine.lucami.org/privkey.pem;
 
     client_max_body_size 500M;
     proxy_request_buffering off;
     proxy_buffering off;
 
-    # Global CORS Headers
-    add_header Access-Control-Allow-Origin      "${CORS_ALLOW_ORIGIN}"      always;
-    add_header Access-Control-Allow-Credentials "${CORS_ALLOW_CREDENTIALS}" always;
-    add_header Access-Control-Allow-Methods     "${CORS_ALLOW_METHODS}"     always;
-    add_header Access-Control-Allow-Headers     "${CORS_ALLOW_HEADERS}"     always;
-    add_header Access-Control-Max-Age           "${CORS_MAX_AGE}"           always;
+    # Remove any CORS headers sent by Kong / PostgREST / Supabase
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Allow-Credentials;
+    proxy_hide_header Access-Control-Allow-Methods;
+    proxy_hide_header Access-Control-Allow-Headers;
+    proxy_hide_header Access-Control-Max-Age;
+
+    # Our CORS headers (only once)
+    add_header Access-Control-Allow-Origin      "http://docker-alpine.lucami.org:3001" always;
+    add_header Access-Control-Allow-Credentials "true" always;
+    add_header Access-Control-Allow-Methods     "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers     "Authorization, apikey, x-client-info, Content-Type, x-upload-content-type, x-supabase-api-version" always;
+    add_header Access-Control-Max-Age           "3600" always;
 
     # Preflight OPTIONS
     location = / {
-        add_header Access-Control-Allow-Origin      "${CORS_ALLOW_ORIGIN}"      always;
-        add_header Access-Control-Allow-Credentials "${CORS_ALLOW_CREDENTIALS}" always;
-        add_header Access-Control-Allow-Methods     "${CORS_ALLOW_METHODS}"     always;
-        add_header Access-Control-Allow-Headers     "${CORS_ALLOW_HEADERS}"     always;
-        add_header Access-Control-Max-Age           "${CORS_MAX_AGE}"           always;
-        add_header Content-Length                   0                           always;
+        add_header Access-Control-Allow-Origin      "http://docker-alpine.lucami.org:3001" always;
+        add_header Access-Control-Allow-Credentials "true" always;
+        add_header Access-Control-Allow-Methods     "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers     "Authorization, apikey, x-client-info, Content-Type, x-upload-content-type, x-supabase-api-version" always;
+        add_header Access-Control-Max-Age           "3600" always;
+        add_header Content-Length                   0 always;
 
         return 204;
     }
 
     # Main proxy to Kong
     location / {
-        proxy_pass http://${KONG_UPSTREAM};
+        proxy_pass http://kong:8000;
         proxy_http_version 1.1;
 
-        proxy_set_header Host                ${DOLLAR}host;
-        proxy_set_header X-Real-IP           ${DOLLAR}remote_addr;
-        proxy_set_header X-Forwarded-For     ${DOLLAR}proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto   ${DOLLAR}scheme;
+        proxy_set_header Host                $$host;
+        proxy_set_header X-Real-IP           $$remote_addr;
+        proxy_set_header X-Forwarded-For     $$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto   $$scheme;
 
-        proxy_set_header Upgrade             ${DOLLAR}http_upgrade;
+        proxy_set_header Upgrade             $$http_upgrade;
         proxy_set_header Connection          "upgrade";
 
         proxy_connect_timeout 60s;
