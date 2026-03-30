@@ -27,4 +27,4 @@ networks:
   service_network:
     external: true
     name: ${SERVICE_NETWORK:-supabase_default}
-``
+
