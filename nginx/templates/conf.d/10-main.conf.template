@@ -1,20 +1,42 @@
 server {
-    listen 443 ssl;
-    http2 on;
+    listen 443 ssl http2;
     server_name _;
 
+    # --- TLS certs (from ${SSL_CERTS_PATH}/${DEFAULT_CERT}) ---
     ssl_certificate     /etc/nginx/certs/${DEFAULT_CERT}/fullchain.pem;
     ssl_certificate_key /etc/nginx/certs/${DEFAULT_CERT}/privkey.pem;
+
+    # --- Body size / buffering ---
+    client_max_body_size 500M;
+    proxy_request_buffering off;
+    proxy_buffering off;
+
+    # --- CORS ---
+    add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
+    add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
+    add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
+    add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
+    add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
+
+    # --- Preflight ---
+    if ($request_method = OPTIONS) {
+        return 204;
+    }
 
     location / {
         proxy_pass http://${KONG_UPSTREAM};
         proxy_http_version 1.1;
 
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
+
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
+
+        proxy_connect_timeout   60s;
+        proxy_send_timeout      300s;
+        proxy_read_timeout      300s;
     }
 }
