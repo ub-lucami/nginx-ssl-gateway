@@ -12,7 +12,7 @@ server {
     proxy_buffering off;
 
     # =========================================
-    # Global CORS Headers (applied to normal responses)
+    # Global CORS Headers (for normal responses)
     # =========================================
     add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
     add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
@@ -21,7 +21,7 @@ server {
     add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
 
     # =========================================
-    # Preflight OPTIONS handling (dedicated exact location)
+    # Preflight OPTIONS - Exact location (safe & reliable)
     # =========================================
     location = / {
         if ($request_method = OPTIONS) {
@@ -34,12 +34,12 @@ server {
             return 204;
         }
 
-        # Reject anything else hitting exactly "/"
+        # Anything else hitting exactly "/" gets rejected
         return 405;
     }
 
     # =========================================
-    # Main location - all other requests (proxied to Kong)
+    # Main proxy location - everything else
     # =========================================
     location / {
         proxy_pass http://${KONG_UPSTREAM};
