@@ -11,50 +11,44 @@ server {
     proxy_request_buffering off;
     proxy_buffering off;
 
-    # --------------------------------------------------------------------------
-    # CORS HEADERS (applied globally)
-    # --------------------------------------------------------------------------
+    # -----------------------------------------
+    # GLOBAL CORS HEADERS
+    # -----------------------------------------
     add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
+    add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
     add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
     add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
-    add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
     add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
 
-    # --------------------------------------------------------------------------
-    # PRE-FLIGHT HANDLING WITHOUT IF (SAFE FOR ENVSUBST)
-    # --------------------------------------------------------------------------
+    # -----------------------------------------
+    # PRE-FLIGHT USING DEDICATED LOCATION
+    # (NO if-statements → envsubst-proof)
+    # -----------------------------------------
     location / {
-        # OPTIONS preflight requests
-        try_files "" @handle_preflight;
+        # Handle OPTIONS (preflight)
+        limit_except GET POST PUT PATCH DELETE {
+            add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
+            add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
+            add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
+            add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
+            add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
+            return 204;
+        }
 
+        # NORMAL REQUESTS
         proxy_pass http://${KONG_UPSTREAM};
         proxy_http_version 1.1;
 
-        proxy_set_header Host              $host;
-        proxy_set_header X-Real-IP         $remote_addr;
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Host                $host;
+        proxy_set_header X-Real-IP           $remote_addr;
+        proxy_set_header X-Forwarded-For     $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto   $scheme;
 
-        proxy_set_header Upgrade           $http_upgrade;
-        proxy_set_header Connection        $connection_upgrade;
+        proxy_set_header Upgrade             $http_upgrade;
+        proxy_set_header Connection          $connection_upgrade;
 
-        proxy_connect_timeout   60s;
-        proxy_send_timeout      300s;
-        proxy_read_timeout      300s;
-    }
-
-    # Dedicated endpoint for OPTIONS requests
-    location @handle_preflight {
-        if ($request_method = "OPTIONS") {
-            add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
-            add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
-            add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
-            add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
-            add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
-            add_header Content-Length 0;
-            add_header Content-Type text/plain;
-            return 204;
-        }
-        return 404;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout    300s;
+        proxy_read_timeout    300s;
     }
 }
