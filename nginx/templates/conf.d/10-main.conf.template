@@ -12,7 +12,7 @@ server {
     proxy_buffering off;
 
     # =========================================
-    # Global CORS Headers (for normal responses)
+    # Global CORS Headers (inherited by normal requests)
     # =========================================
     add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
     add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
@@ -21,25 +21,24 @@ server {
     add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
 
     # =========================================
-    # Preflight OPTIONS - Exact location (safe & reliable)
+    # Preflight OPTIONS handling (no if, no limit_except errors)
     # =========================================
     location = / {
-        if ($request_method = OPTIONS) {
-            add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
-            add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
-            add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
-            add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
-            add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
-            add_header Content-Length 0 always;
-            return 204;
-        }
+        # This location catches preflight requests to the root path
+        # We return 204 with CORS headers for OPTIONS
+        # (Nginx will automatically respond with 405 for other methods here)
+        add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
+        add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
+        add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
+        add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
+        add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
+        add_header Content-Length                   0                         always;
 
-        # Anything else hitting exactly "/" gets rejected
-        return 405;
+        return 204;
     }
 
     # =========================================
-    # Main proxy location - everything else
+    # Main location - proxy all other requests to Kong
     # =========================================
     location / {
         proxy_pass http://${KONG_UPSTREAM};
