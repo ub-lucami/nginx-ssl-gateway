@@ -2,13 +2,13 @@ FROM nginx:1.25-alpine
 
 RUN apk add --no-cache bash
 
-# Your nginx.conf will be mounted over this
+# Copy global nginx.conf
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Your templates will be mounted over this
+# Copy templates (multi-tenant ready)
 COPY nginx/templates /etc/nginx/templates
 
-# Your startup script will be mounted over this
+# Copy start script and make executable
 COPY nginx/start.sh /start.sh
 RUN chmod +x /start.sh
 
