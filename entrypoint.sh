@@ -21,4 +21,3 @@ else
   echo "Template $TEMPLATE not found!" >&2
   exit 1
 fi
-``
