@@ -11,7 +11,9 @@ server {
     proxy_buffering off;
 
     # Preflight
-    if ($request_method = "OPTIONS") {
+
+    # Preflight handling (safe regex version)
+    if ($request_method ~* "^OPTIONS$") {
         add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
         add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
         add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
@@ -21,6 +23,7 @@ server {
         add_header Content-Type text/plain;
         return 204;
     }
+
 
     # CORS headers for normal requests
     add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
