@@ -12,7 +12,7 @@ server {
     proxy_buffering off;
 
     # =========================================
-    # Global CORS Headers (inherited by normal requests)
+    # Global CORS Headers (inherited by normal responses)
     # =========================================
     add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
     add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
@@ -21,12 +21,9 @@ server {
     add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
 
     # =========================================
-    # Preflight OPTIONS handling (no if, no limit_except errors)
+    # Preflight OPTIONS (exact match, no if)
     # =========================================
     location = / {
-        # This location catches preflight requests to the root path
-        # We return 204 with CORS headers for OPTIONS
-        # (Nginx will automatically respond with 405 for other methods here)
         add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
         add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
         add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
@@ -38,7 +35,7 @@ server {
     }
 
     # =========================================
-    # Main location - proxy all other requests to Kong
+    # Main proxy location
     # =========================================
     location / {
         proxy_pass http://${KONG_UPSTREAM};
@@ -50,7 +47,7 @@ server {
         proxy_set_header X-Forwarded-Proto   $scheme;
 
         proxy_set_header Upgrade             $http_upgrade;
-        proxy_set_header Connection          $connection_upgrade;
+        proxy_set_header Connection          $connection_upgrade;   # This is now safe
 
         proxy_connect_timeout 60s;
         proxy_send_timeout    300s;
