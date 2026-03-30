@@ -1,17 +1,15 @@
-FROM nginx:1.27-alpine
+FROM nginx:1.25-alpine
 
-# Source metadata
-LABEL org.opencontainers.image.source="https://github.com/ub-lucami/nginx-ssl-gateway"
+# tini for proper signals (optional but helps with clean shutdowns)
+RUN apk add --no-cache bash gettext tini
 
-# Copy files and set ownership to the nginx user to limit file permissions
-COPY --chown=nginx:nginx nginx/nginx.conf /etc/nginx/nginx.conf
-COPY --chown=nginx:nginx nginx/templates /etc/nginx/templates
-COPY --chown=nginx:nginx nginx/start.sh /start.sh
+# Copy static global config and template
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY default.conf.template /etc/nginx/templates/default.conf.template
+COPY entrypoint.sh /docker-entrypoint.d/20-render-template.sh
 
-# Ensure the start script is executable (single layer)
-RUN chmod 755 /start.sh
+# Make sure the hook is executable
+RUN chmod +x /docker-entrypoint.d/20-render-template.sh
 
-# Run the container using the script directly (exec form). Keep using the
-# base image's nginx user for file ownership; the nginx process still drops
-# privileges according to its configuration.
-CMD ["/start.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"
