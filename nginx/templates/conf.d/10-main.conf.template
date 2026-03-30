@@ -2,33 +2,42 @@ server {
     listen 443 ssl;
     http2 on;
 
-    # Adjust if needed
     server_name docker-alpine.lucami.org;
 
-    # SSL certificates (templated)
+    # TLS certificates (templated)
     ssl_certificate     /etc/nginx/certs/${DEFAULT_CERT}/fullchain.pem;
     ssl_certificate_key /etc/nginx/certs/${DEFAULT_CERT}/privkey.pem;
 
-    # Body & buffering
     client_max_body_size 500M;
     proxy_request_buffering off;
     proxy_buffering off;
 
-    # --------------------------------------------------------
-    # GLOBAL CORS HEADERS (apply to all responses)
-    # --------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # GLOBAL CORS HEADERS (Nginx will add these to ALL responses)
+    # -------------------------------------------------------------------------
     add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
     add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
     add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
     add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
     add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
 
-    # --------------------------------------------------------
-    # MAIN LOCATION (including preflight)
-    # --------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # MAIN LOCATION BLOCK
+    # -------------------------------------------------------------------------
     location / {
 
-        # Safe OPTIONS handling (no envsubst issues)
+        # -----------------------------------------------------
+        # REMOVE ALL UPSTREAM CORS HEADERS (Supabase, Kong, etc.)
+        # -----------------------------------------------------
+        proxy_hide_header Access-Control-Allow-Origin;
+        proxy_hide_header Access-Control-Allow-Methods;
+        proxy_hide_header Access-Control-Allow-Headers;
+        proxy_hide_header Access-Control-Allow-Credentials;
+        proxy_hide_header Access-Control-Max-Age;
+
+        # -----------------------------------------------------
+        # PRE-FLIGHT OPTIONS HANDLING
+        # -----------------------------------------------------
         if ($request_method = "OPTIONS") {
             add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
             add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
@@ -40,13 +49,13 @@ server {
             return 204;
         }
 
-        # ---------------------------------------------
-        # Proxy to Kong
-        # ---------------------------------------------
+        # -----------------------------------------------------
+        # PROXY TO KONG / SUPABASE / UPSTREAM
+        # -----------------------------------------------------
         proxy_pass http://${KONG_UPSTREAM};
         proxy_http_version 1.1;
 
-        # Correct NGINX variables (envsubst will not touch them)
+        # Proper NGINX variables preserved (envsubst will NOT touch these)
         proxy_set_header Host                $host;
         proxy_set_header X-Real-IP           $remote_addr;
         proxy_set_header X-Forwarded-For     $proxy_add_x_forwarded_for;
