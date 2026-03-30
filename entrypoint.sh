@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Render the default server from the template using envsubst
-TEMPLATE=/etc/nginx/templates/default.conf.template
+TEMPLATE=/etc/nginx/templates/conf.d/default.conf.template
 OUTPUT=/etc/nginx/conf.d/default.conf
 
 if [ -f "$TEMPLATE" ]; then
