@@ -12,4 +12,4 @@ COPY entrypoint.sh /docker-entrypoint.d/20-render-template.sh
 RUN chmod +x /docker-entrypoint.d/20-render-template.sh
 
 ENTRYPOINT ["/sbin/tini", "--", "/docker-entrypoint.sh"]
-CMD ["nginx", "-g", "daemon off;"
+CMD ["nginx", "-g", "daemon off;"]
