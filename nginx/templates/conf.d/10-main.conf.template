@@ -12,7 +12,8 @@ server {
     proxy_buffering off;
 
     # -----------------------------------------
-    # GLOBAL CORS HEADERS
+    # GLOBAL CORS HEADERS (server level)
+    # These will be inherited by locations that do NOT define their own add_header
     # -----------------------------------------
     add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
     add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
@@ -21,12 +22,13 @@ server {
     add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
 
     # -----------------------------------------
-    # PRE-FLIGHT USING DEDICATED LOCATION
-    # (NO if-statements → envsubst-proof)
+    # PRE-FLIGHT (OPTIONS) HANDLING
+    # Dedicated location + limit_except (envsubst-proof, no if)
     # -----------------------------------------
     location / {
-        # Handle OPTIONS (preflight)
+        # Handle preflight OPTIONS requests
         limit_except GET POST PUT PATCH DELETE {
+            # Return 204 for OPTIONS (and any other disallowed method)
             add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
             add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
             add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
@@ -35,7 +37,7 @@ server {
             return 204;
         }
 
-        # NORMAL REQUESTS
+        # NORMAL REQUESTS (GET, POST, PUT, PATCH, DELETE, ...)
         proxy_pass http://${KONG_UPSTREAM};
         proxy_http_version 1.1;
 
