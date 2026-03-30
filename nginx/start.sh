@@ -3,10 +3,12 @@ set -e
 
 echo "Rendering Nginx templates..."
 
+VARS='$DEFAULT_CERT $KONG_UPSTREAM $CORS_ALLOW_ORIGIN $CORS_ALLOW_METHODS $CORS_ALLOW_HEADERS $CORS_ALLOW_CREDENTIALS $CORS_MAX_AGE'
+
 for tpl in /etc/nginx/templates/conf.d/*.template; do
     out="/etc/nginx/conf.d/$(basename "$tpl" .template)"
-    echo "Generating $out from $tpl"
-    envsubst < "$tpl" > "$out"
+    envsubst "$VARS" < "$tpl" > "$out"
+    echo "Generated $out"
 done
 
 echo "Templates rendered. Starting Nginx..."
