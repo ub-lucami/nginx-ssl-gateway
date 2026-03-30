@@ -1,15 +1,15 @@
 FROM nginx:1.25-alpine
 
-# tini for proper signals (optional but helps with clean shutdowns)
-RUN apk add --no-cache bash gettext tini
+RUN apk add --no-cache bash
 
-# Copy static global config and template
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY default.conf.template /etc/nginx/templates/default.conf.template
-COPY entrypoint.sh /docker-entrypoint.d/20-render-template.sh
+# Your nginx.conf will be mounted over this
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Make sure the hook is executable
-RUN chmod +x /docker-entrypoint.d/20-render-template.sh
+# Your templates will be mounted over this
+COPY nginx/templates /etc/nginx/templates
 
-ENTRYPOINT ["/sbin/tini", "--", "/docker-entrypoint.sh"]
-CMD ["nginx", "-g", "daemon off;"]
+# Your startup script will be mounted over this
+COPY nginx/start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
