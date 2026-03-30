@@ -1,6 +1,6 @@
 server {
     listen 443 ssl http2;
-    server_name _;
+    server_name *.lucami.org;
 
     ssl_certificate     /etc/nginx/certs/${DEFAULT_CERT}/fullchain.pem;
     ssl_certificate_key /etc/nginx/certs/${DEFAULT_CERT}/privkey.pem;
