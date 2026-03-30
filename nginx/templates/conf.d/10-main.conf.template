@@ -11,21 +11,21 @@ server {
     proxy_request_buffering off;
     proxy_buffering off;
 
-    # Global CORS Headers (applied to normal proxied responses)
-    add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
-    add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
-    add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
-    add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
-    add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
+    # Global CORS Headers (applied to normal responses)
+    add_header Access-Control-Allow-Origin      "${CORS_ALLOW_ORIGIN}"      always;
+    add_header Access-Control-Allow-Credentials "${CORS_ALLOW_CREDENTIALS}" always;
+    add_header Access-Control-Allow-Methods     "${CORS_ALLOW_METHODS}"     always;
+    add_header Access-Control-Allow-Headers     "${CORS_ALLOW_HEADERS}"     always;
+    add_header Access-Control-Max-Age           "${CORS_MAX_AGE}"           always;
 
-    # Preflight OPTIONS - exact match location (no if, no limit_except)
+    # Preflight OPTIONS (exact match location - no if, no limit_except)
     location = / {
-        add_header Access-Control-Allow-Origin      "$CORS_ALLOW_ORIGIN"      always;
-        add_header Access-Control-Allow-Credentials "$CORS_ALLOW_CREDENTIALS" always;
-        add_header Access-Control-Allow-Methods     "$CORS_ALLOW_METHODS"     always;
-        add_header Access-Control-Allow-Headers     "$CORS_ALLOW_HEADERS"     always;
-        add_header Access-Control-Max-Age           "$CORS_MAX_AGE"           always;
-        add_header Content-Length                   0                         always;
+        add_header Access-Control-Allow-Origin      "${CORS_ALLOW_ORIGIN}"      always;
+        add_header Access-Control-Allow-Credentials "${CORS_ALLOW_CREDENTIALS}" always;
+        add_header Access-Control-Allow-Methods     "${CORS_ALLOW_METHODS}"     always;
+        add_header Access-Control-Allow-Headers     "${CORS_ALLOW_HEADERS}"     always;
+        add_header Access-Control-Max-Age           "${CORS_MAX_AGE}"           always;
+        add_header Content-Length                   0                           always;
 
         return 204;
     }
@@ -40,7 +40,7 @@ server {
         proxy_set_header X-Forwarded-For     $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto   $scheme;
 
-        # WebSocket support - safe for envsubst
+        # WebSocket support - safe with envsubst
         proxy_set_header Upgrade             $http_upgrade;
         proxy_set_header Connection          "upgrade";
 
